@@ -90,7 +90,7 @@
 (defn inc-instruction-pointer [state]
   (update state :instruction-pointer inc))
 
-; ----- Pointer Left/Right
+; ----- Pointer Left/Right < >
 
 (defn move-pointer-left [state & [by?]]
   (let [by (default-mag by?)
@@ -108,7 +108,7 @@
         (grow-cells-if-nec new-ptr)
         (assoc :cell-pointer new-ptr))))
 
-; ----- Current Cell Effectors
+; ----- Current Cell Effectors + - / *
 
 (defn- effect-current-cell [state f]
   (update-in state [:cells (:cell-pointer state)] f))
@@ -132,7 +132,14 @@
 (defn div [state & [n?]]
   (defaulting-effect-current-cell state / n?))
 
-#_ ; The world isn't ready
-    (defn sqrt [state]
-      (defaulting-effect-current-cell state #(int (Math/sqrt %))))
+#_
+(defn sqrt [state]
+  (defaulting-effect-current-cell state #(int (Math/sqrt %))))
+
+; ----- Looping [ ] { }(Moves the instruction pointer the indicated number of chunks)
+
+; ----- Meta? ^(Evaluates to the value of the current cell)
+
+; ----- IO , .
+
 
