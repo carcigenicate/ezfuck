@@ -6,9 +6,6 @@
 
 ; TODO:
 ; - Have an operator that evaluates to the current cell value.
-; ! Fix the wrapping behavior of move-left
-;   - If move-left amount > than current size, the cell pointer becomes invalid
-;   -
 
 (def default-effect-magnitude 1)
 
@@ -87,8 +84,12 @@
 
 ; ----- Instruction Pointer
 
+(defn effect-instruction-pointer [state f]
+  (update state :instruction-pointer
+          #(g/clamp (f %) 0 Long/MAX_VALUE)))
+
 (defn inc-instruction-pointer [state]
-  (update state :instruction-pointer inc))
+  (effect-instruction-pointer state inc))
 
 ; ----- Pointer Left/Right < >
 
@@ -108,10 +109,16 @@
         (grow-cells-if-nec new-ptr)
         (assoc :cell-pointer new-ptr))))
 
-; ----- Current Cell Effectors + - / *
+; ----- Current Cell Effectors / Readers + - / *
 
 (defn- effect-current-cell [state f]
   (update-in state [:cells (:cell-pointer state)] f))
+
+(defn- current-cell-value [state]
+  (get-in state [:cells (:cell-pointer state)]))
+
+(defn- current-cell-zero? [state]
+    (zero? (current-cell-value state)))
 
 (defn- defaulting-effect-current-cell
   "Effects the current cell by applying f to the current cell value, and n? (apply f current vs?)
@@ -136,10 +143,78 @@
 (defn sqrt [state]
   (defaulting-effect-current-cell state #(int (Math/sqrt %))))
 
-; ----- Looping [ ] { }(Moves the instruction pointer the indicated number of chunks)
+; ----- IO , .
+
+(defn output-cell-at-pointer
+  "Assumes the current cell value is a valid character code."
+  [state]
+  (let [{cells :cells cp :cell-pointer} state
+        raw-output (cells cp)
+        output-char (char raw-output)]
+
+    (print output-char)
+    (flush)
+
+    state))
+
+(defn buffered-input-to-cell-at-pointer
+  "Reads in a string, and sets the current cell value to the ASCII code of the first letter.
+  Must enter a newline after the input."
+  [state]
+  (effect-current-cell state
+                       (constantly
+                         (-> (read-line)
+                             (first)
+                             (int)))))
+
+; ----- Looping [ ]
+
+(defn- current-loop-anchor-index [state]
+  (-> state
+      (:loop-anchors)
+      (last)))
+
+(defn start-loop [state]
+  (update state :loop-anchors
+          #(conj % (:instruction-pointer state))))
+
+(defn- unchecked-loop-jump [state]
+  (assoc state :instruction-pointer
+               (current-loop-anchor-index state)))
+
+(defn checked-loop-jump [state]
+  (check-anchors-non-empty state)
+
+  (unchecked-loop-jump state))
+
+(defn- unchecked-loop-end [state]
+  (update state :loop-anchors
+          #(vec (drop-last %))))
+
+(defn checked-loop-end [state]
+  (check-anchors-non-empty state)
+
+  (unchecked-loop-end state))
+
+(defn close-loop [state]
+  (let [{cp :cell-pointer cs :cells} state]
+    (if (current-cell-zero? state)
+      (checked-loop-end state)
+      (checked-loop-jump state))))
+
+; ----- Jumps { }(Moves the instruction pointer the indicated number of chunks)
+(defn jump-left [state & [by?]]
+  (let [by (default-mag by?)]
+    (if (current-cell-zero? state)
+      state
+      (effect-instruction-pointer state #(- % by)))))
+
+(defn jump-right [state & [by?]]
+  (let [by (default-mag by?)]
+    (if (current-cell-zero? state)
+      state
+      (effect-instruction-pointer state #(+ % by)))))
 
 ; ----- Meta? ^(Evaluates to the value of the current cell)
-
-; ----- IO , .
 
 
