@@ -123,7 +123,7 @@
     (zero? (current-cell-value state)))
 
 (defn- defaulting-effect-current-cell
-  "Effects the current cell by applying f to the current cell value, and n? (apply f current vs?)
+  "Effects the current cell by applying f to the current cell value, and vs? (apply f current vs?)
   vs? values default to default-effect-magnitude when nil."
   [state f & vs?]
   (let [vs (map default-mag vs?)]
@@ -139,7 +139,9 @@
   (defaulting-effect-current-cell state - n?))
 
 (defn div [state & [n?]]
-  (defaulting-effect-current-cell state #(long (/ % %2)) n?))
+  (defaulting-effect-current-cell state
+                                  #(long (/ % %2))
+                                  n?))
 
 #_
 (defn sqrt [state]
@@ -258,7 +260,6 @@
   At the end of the chunks, it applies the remaining command; if the last chunk was a command."
   [state chunks]
   (let [chunks-v (vec chunks)]
-    (println "Starting apply-chunks")
     (loop [state' state]
       (let [ptr (:instruction-pointer state')
             chunk (get chunks-v ptr nil)]
