@@ -85,7 +85,7 @@
 
 (defn effect-instruction-pointer [state f]
   (update state :instruction-pointer
-          #(g/clamp (f %) 0 Long/MAX_VALUE)))
+          #(g/clamp (f %) -1 Long/MAX_VALUE)))
 
 (defn inc-instruction-pointer [state]
   (effect-instruction-pointer state inc))
