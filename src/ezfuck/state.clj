@@ -6,11 +6,12 @@
 
 ; TODO:
 ; - Have an operator that evaluates to the current cell value.
+; - Have a Reader class that handles the instruction-pointer?
 
 (def default-effect-magnitude 1)
 
 (declare pprint-state)
-(defrecord State [current-command instruction-pointer cell-pointer loop-anchors cells]
+(defrecord State [last-command instruction-pointer cell-pointer loop-anchors cells]
   Object
   (toString [self] (pprint-state self)))
 
@@ -33,7 +34,7 @@
 
 (defn pprint-state [state]
   (let [limited-cells (update state :cells rev-drop-zeros)
-        prettied-command (update state :current-command #(if (nil? %) \_ %))]
+        prettied-command (update state :last-command #(if (nil? %) \_ %))]
     (str "<" (s/join " " (vals prettied-command)) ">")))
 
 (defn syntax-error [^String cause]
@@ -215,6 +216,52 @@
       state
       (effect-instruction-pointer state #(+ % by)))))
 
-; ----- Meta? ^(Evaluates to the value of the current cell)
+; ----- Insertion / Extraction Operator ^(Evaluates to the value of the current cell)
+; ------ Not yet implemented
 
+(defn insert [state]
+  state)
 
+(defn extract [state]
+  state)
+
+; ----- Run
+
+(defn- valid-chunk? [chunk]
+  (or (fn? chunk) (number? chunk)))
+
+(defn command? [chunk]
+  (fn? chunk))
+
+(defn value? [chunk]
+  (number? chunk))
+
+(defn- verify-chunk [chunk]
+  (when-not (valid-chunk? chunk)
+    (throw (RuntimeException. (str "Invalid Chunk: " chunk)))))
+
+(defn- apply-last-command [state current-chunk]
+  (let [{last-comm :last-command} state]
+    (if last-comm
+      (-> state
+          (last-comm (when (value? current-chunk)))
+          (assoc :last-command nil))
+      state)))
+
+; TODO: There's no lookahead to see what the next chunk is.
+; Currently delays execution of each chunk until the type of the next is known
+(defn apply-chunk-to-state [state chunk]
+  (verify-chunk chunk)
+
+  (let [{last-comm? :last-command} state
+        last-comm-ran-state (apply-last-command state chunk)]
+
+    (if (command? chunk)
+      (assoc last-comm-ran-state :last-command chunk)
+
+      last-comm-ran-state)))
+
+(defn apply-to-state [state chunk] ; Chunk name?
+  (-> state
+      (apply-chunk-to-state chunk)
+      (inc-instruction-pointer)))
