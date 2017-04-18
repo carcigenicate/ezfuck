@@ -9,17 +9,17 @@
 (def default-effect-magnitude 1)
 
 (declare pprint-state)
-(defrecord State [last-command instruction-pointer cell-pointer loop-anchors cells]
+(defrecord State [instruction-pointer cell-pointer loop-anchors cells last-command]
   Object
   (toString [self] (pprint-state self)))
 
 (defn new-state []
   (->State
-    nil
     0
     0
     []
-    [0]))
+    [0]
+    nil))
 
 ; ----- Misc
 
@@ -242,7 +242,7 @@
   (let [{last-comm :last-command} state]
     (if last-comm
       (-> state
-          (last-comm (when (value? current-chunk)))
+          (last-comm (when (value? current-chunk) current-chunk))
           (assoc :last-command nil))
       state)))
 
@@ -259,7 +259,7 @@
 
       last-comm-ran-state)))
 
-(defn apply-to-state [state chunk] ; Chunk name?
+(defn apply-chunk [state chunk] ; Chunk name?
   (-> state
       (apply-chunk-to-state chunk)
       (inc-instruction-pointer)))
@@ -267,9 +267,11 @@
 (defn apply-chunks [state chunks]
   (let [chunks-v (vec chunks)]
     (loop [state' state]
-      (let [ptr (:instruction-pointer state)
+      (let [ptr (:instruction-pointer state')
             chunk (get chunks-v ptr nil)]
 
+        (println "Ptr" ptr)
+
         (if chunk
-          (recur (apply-to-state state' chunk))
+          (recur (apply-chunk state' chunk))
           state')))))
