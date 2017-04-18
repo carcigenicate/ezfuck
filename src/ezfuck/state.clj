@@ -11,7 +11,7 @@
 (def default-effect-magnitude 1)
 
 (declare pprint-state)
-(defrecord State [instruction-pointer cell-pointer loop-anchors cells last-command]
+(defrecord State [instruction-pointer cell-pointer loop-anchors cells]
   Object
   (toString [self] (pprint-state self)))
 
@@ -20,8 +20,7 @@
     0
     0
     []
-    [0]
-    nil))
+    [0]))
 
 ; ----- Misc
 
@@ -33,9 +32,8 @@
        (vec)))
 
 (defn pprint-state [state]
-  (let [limited-cells (update state :cells rev-drop-zeros)
-        prettied-command (update state :last-command #(if (nil? %) \_ %))]
-    (str "<" (s/join " " (vals prettied-command)) ">")))
+  (let [limited-cells (update state :cells rev-drop-zeros)]
+    (str "<" (s/join " " (vals limited-cells)) ">")))
 
 (defn syntax-error [^String cause]
   (RuntimeException.
@@ -141,7 +139,7 @@
   (defaulting-effect-current-cell state - n?))
 
 (defn div [state & [n?]]
-  (defaulting-effect-current-cell state / n?))
+  (defaulting-effect-current-cell state #(long (/ % %2)) n?))
 
 #_
 (defn sqrt [state]
@@ -230,7 +228,9 @@
 ; ----- Run
 
 (defn- valid-chunk? [chunk]
-  (or (fn? chunk) (number? chunk)))
+  (let [[comm args?] chunk]
+    (and (fn? comm)
+         (or (nil? args?) (seq? args?)))))
 
 (defn command? [chunk]
   (fn? chunk))
@@ -242,26 +242,11 @@
   (when-not (valid-chunk? chunk)
     (throw (RuntimeException. (str "Invalid Chunk: " chunk)))))
 
-(defn- apply-last-command [state current-chunk]
-  (let [{last-comm :last-command} state]
-    (if last-comm
-      (-> state
-          (last-comm (when (value? current-chunk) current-chunk))
-          (assoc :last-command nil))
-      state)))
-
-; TODO: There's no lookahead to see what the next chunk is.
-; Currently delays execution of each chunk until the type of the next is known
 (defn- apply-chunk-to-state [state chunk]
   (verify-chunk chunk)
 
-  (let [{last-comm? :last-command} state
-        last-comm-ran-state (apply-last-command state chunk)]
-
-    (if (command? chunk)
-      (assoc last-comm-ran-state :last-command chunk)
-
-      last-comm-ran-state)))
+  (let [[comm args?] chunk]
+    (apply comm state args?)))
 
 (defn apply-chunk [state chunk] ; Chunk name?
   (-> state
@@ -273,12 +258,11 @@
   At the end of the chunks, it applies the remaining command; if the last chunk was a command."
   [state chunks]
   (let [chunks-v (vec chunks)]
+    (println "Starting apply-chunks")
     (loop [state' state]
       (let [ptr (:instruction-pointer state')
             chunk (get chunks-v ptr nil)]
 
-        (println "IP:" ptr)
-
         (if chunk
           (recur (apply-chunk state' chunk))
-          (apply-last-command state' nil))))))
+          state')))))

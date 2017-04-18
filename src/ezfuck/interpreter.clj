@@ -41,10 +41,23 @@
 
       acc)))
 
+(defn group-data-commands [code-chunks]
+  (let [dropped-starting-number (if (number? (first code-chunks))
+                                    (drop 1 code-chunks)
+                                    code-chunks)]
+    (loop [[comm & rest-chunks] dropped-starting-number
+           acc []]
+
+      (if comm
+        (let [[args rest-chunks'] (split-with number? rest-chunks)]
+          (recur rest-chunks' (conj acc [comm args])))
+        acc))))
+
 (defn process-code [^String code]
   (-> code
       (filter-code)
-      (chunk-symbols)))
+      (chunk-symbols)
+      (group-data-commands)))
 
 (defn interpret [^String code]
   (let [chunks (process-code code)]
