@@ -1,6 +1,8 @@
 (ns ezfuck.state
   (:require [clojure.string :as s]
-            [helpers.general-helpers :as g]))
+            [helpers.general-helpers :as g])
+
+  (:refer-clojure :exclude [chunk]))
 
 ; TODO:
 ; - Have an operator that evaluates to the current cell value.
@@ -92,10 +94,13 @@
 
 ; ----- Pointer Left/Right < >
 
+(defn clamp-cell-pointer [cells ptr]
+  (g/clamp ptr 0 (count cells)))
+
 (defn move-pointer-left [state & [by?]]
   (let [by (default-mag by?)
         {cells :cells ptr :cell-pointer} state
-        new-ptr (g/clamp (- ptr by) 0 (count cells))]
+        new-ptr (clamp-cell-pointer cells (- ptr by))]
     (-> state
         (shrink-cells-if-nec new-ptr)
         (assoc :cell-pointer new-ptr))))
@@ -103,7 +108,7 @@
 (defn move-pointer-right [state & [by?]]
   (let [by (default-mag by?)
         {cells :cells ptr :cell-pointer} state
-        new-ptr (+ ptr by)]
+        new-ptr (clamp-cell-pointer cells (+ ptr by))]
     (-> state
         (grow-cells-if-nec new-ptr)
         (assoc :cell-pointer new-ptr))))
@@ -264,11 +269,15 @@
       (apply-chunk-to-state chunk)
       (inc-instruction-pointer)))
 
-(defn apply-chunks [state chunks]
+(defn apply-chunks
+  "Applies the chunks to the state.
+  At the end of the chunks, it applies the remaining command; if the last chunk was a command."
+  [state chunks]
   (let [chunks-v (vec chunks)]
     (loop [state' state]
-      (let [ptr (:instruction-pointer state')]
+      (let [ptr (:instruction-pointer state')
+            chunk (get chunks-v ptr nil)]
 
         (if chunk
           (recur (apply-chunk state' chunk))
-          state')))))
+          (apply-last-command state' nil))))))
