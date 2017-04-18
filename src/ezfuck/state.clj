@@ -267,10 +267,7 @@
 (defn apply-chunks [state chunks]
   (let [chunks-v (vec chunks)]
     (loop [state' state]
-      (let [ptr (:instruction-pointer state')
-            chunk (get chunks-v ptr nil)]
-
-        (println "Ptr" ptr)
+      (let [ptr (:instruction-pointer state')]
 
         (if chunk
           (recur (apply-chunk state' chunk))
