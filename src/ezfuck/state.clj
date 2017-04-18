@@ -178,7 +178,7 @@
       (:loop-anchors)
       (last)))
 
-(defn start-loop [state]
+(defn start-loop [state & [_]]
   (update state :loop-anchors
           #(conj % (:instruction-pointer state))))
 
@@ -200,11 +200,10 @@
 
   (unchecked-loop-end state))
 
-(defn close-loop [state]
-  (let [{cp :cell-pointer cs :cells} state]
-    (if (current-cell-zero? state)
-      (checked-loop-end state)
-      (checked-loop-jump state))))
+(defn close-loop [state & [_]]
+  (if (current-cell-zero? state)
+    (checked-loop-end state)
+    (checked-loop-jump state)))
 
 ; ----- Jumps { }(Moves the instruction pointer the indicated number of chunks)
 (defn jump-left [state & [by?]]
@@ -277,6 +276,8 @@
     (loop [state' state]
       (let [ptr (:instruction-pointer state')
             chunk (get chunks-v ptr nil)]
+
+        (println "IP:" ptr)
 
         (if chunk
           (recur (apply-chunk state' chunk))

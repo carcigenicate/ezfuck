@@ -7,6 +7,9 @@
                  \{ s/jump-left
                  \} s/jump-right
 
+                 \[ s/start-loop
+                 \] s/close-loop
+
                  \+ s/add
                  \- s/sub
                  \* s/mult
