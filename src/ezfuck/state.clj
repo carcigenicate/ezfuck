@@ -1,6 +1,4 @@
-(ns ezfuck.state)
-
-(ns brain-fuck.ezfuck.state
+(ns ezfuck.state
   (:require [clojure.string :as s]
             [helpers.general-helpers :as g]))
 
@@ -250,7 +248,7 @@
 
 ; TODO: There's no lookahead to see what the next chunk is.
 ; Currently delays execution of each chunk until the type of the next is known
-(defn apply-chunk-to-state [state chunk]
+(defn- apply-chunk-to-state [state chunk]
   (verify-chunk chunk)
 
   (let [{last-comm? :last-command} state
@@ -265,3 +263,13 @@
   (-> state
       (apply-chunk-to-state chunk)
       (inc-instruction-pointer)))
+
+(defn apply-chunks [state chunks]
+  (let [chunks-v (vec chunks)]
+    (loop [state' state]
+      (let [ptr (:instruction-pointer state)
+            chunk (get chunks-v ptr nil)]
+
+        (if chunk
+          (recur (apply-to-state state' chunk))
+          state')))))

@@ -1,3 +1,0 @@
-(ns ezfuck.reader)
-
-()
