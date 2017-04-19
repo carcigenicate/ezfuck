@@ -74,7 +74,7 @@
       (case input
         "stop" nil
 
-        "clear" (st/new-state)
+        "clear" (recur (st/new-state))
 
         (let [comm-chunks (process-code input)
               next-state (st/apply-chunks state comm-chunks)]
