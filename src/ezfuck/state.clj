@@ -219,13 +219,19 @@
       (effect-instruction-pointer state #(+ % by)))))
 
 ; ----- Insertion / Extraction Operator ^(Evaluates to the value of the current cell)
-; ------ Not yet implemented
 
 (defn insert [state]
-  state)
+  (throw (UnsupportedOperationException.
+           "Insert hasn't been implememted yet.")))
 
-(defn extract [state]
-  state)
+(defn extract [state n]
+  (effect-current-cell state
+                       (constantly n)))
+
+(defn insert-extract [state & [n?]]
+  (if n?
+    (extract state n?)
+    (insert state)))
 
 ; ----- Run
 
