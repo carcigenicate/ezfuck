@@ -1,6 +1,7 @@
 (ns ezfuck.interpreter
   (:require [ezfuck.state :as st]
-            [ezfuck.language-symbols :as sy]))
+            [ezfuck.language-symbols :as sy]
+            [helpers.general-helpers :as g]))
 
 (def standard-state (st/new-state))
 
@@ -62,3 +63,22 @@
 (defn interpret [^String code]
   (let [chunks (process-code code)]
     (st/apply-chunks standard-state chunks)))
+
+(defn repl []
+  (loop [state standard-state]
+
+    (print ":>")
+    (flush)
+
+    (let [input (read-line)]
+      (case
+        "stop" nil
+
+        "clear" (st/new-state)
+
+        (let [comm-chunks (process-code input)
+              next-state (st/apply-chunks state comm-chunks)]
+
+          (println (str next-state))
+
+          (recur next-state))))))
