@@ -18,4 +18,5 @@
                  \. s/output-cell-at-pointer
                  \, s/buffered-input-to-cell-at-pointer
 
-                 \^ s/insert-extract})
+                 \^ s/extract
+                 \V ::s/insert})

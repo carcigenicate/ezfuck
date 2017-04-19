@@ -10,6 +10,10 @@
 
 (def default-effect-magnitude 1)
 
+(def insertion-marker ::insert)
+
+(def standard-args-n 1)
+
 (declare pprint-state)
 (defrecord State [instruction-pointer cell-pointer loop-anchors cells]
   Object
@@ -78,9 +82,6 @@
              (shrink-cells-to % (inc new-ptr))
              %)))
 
-(defn default-mag [mag?]
-  (or mag? default-effect-magnitude))
-
 ; ----- Instruction Pointer
 
 (defn effect-instruction-pointer [state f]
@@ -95,17 +96,15 @@
 (defn clamp-cell-pointer [cells ptr]
   (g/clamp ptr 0 (count cells)))
 
-(defn move-pointer-left [state & [by?]]
-  (let [by (default-mag by?)
-        {cells :cells ptr :cell-pointer} state
+(defn move-pointer-left [state by]
+  (let [{cells :cells ptr :cell-pointer} state
         new-ptr (clamp-cell-pointer cells (- ptr by))]
     (-> state
         (shrink-cells-if-nec new-ptr)
         (assoc :cell-pointer new-ptr))))
 
-(defn move-pointer-right [state & [by?]]
-  (let [by (default-mag by?)
-        {cells :cells ptr :cell-pointer} state
+(defn move-pointer-right [state by]
+  (let [{cells :cells ptr :cell-pointer} state
         new-ptr (clamp-cell-pointer cells (+ ptr by))]
     (-> state
         (grow-cells-if-nec new-ptr)
@@ -123,25 +122,24 @@
     (zero? (current-cell-value state)))
 
 (defn- defaulting-effect-current-cell
-  "Effects the current cell by applying f to the current cell value, and vs? (apply f current vs?)
-  vs? values default to default-effect-magnitude when nil."
-  [state f & vs?]
-  (let [vs (map default-mag vs?)]
-    (effect-current-cell state #(apply f % vs))))
+  "Effects the current cell by applying f to the current cell value, and args (apply f current args)
+  args values default to default-effect-magnitude when nil."
+  [state f & args]
+  (effect-current-cell state #(apply f % args)))
 
-(defn add [state & [n?]]
-  (defaulting-effect-current-cell state + n?))
+(defn add [state n]
+  (defaulting-effect-current-cell state + n))
 
-(defn mult [state & [n?]]
-  (defaulting-effect-current-cell state * n?))
+(defn mult [state n]
+  (defaulting-effect-current-cell state * n))
 
-(defn sub [state & [n?]]
-  (defaulting-effect-current-cell state - n?))
+(defn sub [state n]
+  (defaulting-effect-current-cell state - n))
 
-(defn div [state & [n?]]
+(defn div [state n]
   (defaulting-effect-current-cell state
                                   #(long (/ % %2))
-                                  n?))
+                                  n))
 
 #_
 (defn sqrt [state]
@@ -178,7 +176,7 @@
       (:loop-anchors)
       (last)))
 
-(defn start-loop [state & [_]]
+(defn start-loop [state _]
   (update state :loop-anchors
           #(conj % (:instruction-pointer state))))
 
@@ -200,38 +198,57 @@
 
   (unchecked-loop-end state))
 
-(defn close-loop [state & [_]]
+(defn close-loop [state _]
   (if (current-cell-zero? state)
     (checked-loop-end state)
     (checked-loop-jump state)))
 
 ; ----- Jumps { }(Moves the instruction pointer the indicated number of chunks)
-(defn jump-left [state & [by?]]
-  (let [by (default-mag by?)]
-    (if (current-cell-zero? state)
-      state
-      (effect-instruction-pointer state #(- % by)))))
+(defn jump-left [state by]
+  (if (current-cell-zero? state)
+    state
+    (effect-instruction-pointer state #(- % by))))
 
-(defn jump-right [state & [by?]]
-  (let [by (default-mag by?)]
-    (if (current-cell-zero? state)
-      state
-      (effect-instruction-pointer state #(+ % by)))))
+(defn jump-right [state by]
+  (if (current-cell-zero? state)
+    state
+    (effect-instruction-pointer state #(+ % by))))
 
 ; ----- Insertion / Extraction Operator ^(Evaluates to the value of the current cell)
+
+(defn insertion-operator? [arg]
+  (= arg ::insert))
 
 (defn insert [state]
   (throw (UnsupportedOperationException.
            "Insert hasn't been implememted yet.")))
 
-(defn extract [state n]
-  (effect-current-cell state
-                       (constantly n)))
-
-(defn insert-extract [state & [n?]]
+(defn extract [state & [n?]]
   (if n?
-    (extract state n?)
-    (insert state)))
+    (effect-current-cell state
+                         (constantly n?))
+    state))
+
+; ----- Argument Processing
+
+(defn- substitute-if-insertion [sub-value arg]
+  (if (insertion-operator? arg)
+    sub-value
+    arg))
+
+(defn substitute-args [args sub-value]
+  (map #(substitute-if-insertion sub-value %) args))
+
+(defn standardize-args [args]
+  (map #(or % default-effect-magnitude) args))
+
+(defn wrap-command [command n-args]
+  (fn [state & args]
+    (let [subd-args (substitute-args args (current-cell-value state))
+          full-args (into (vec subd-args)
+                          (repeat (- n-args (count args))
+                                  default-effect-magnitude))]
+      (apply command state full-args))))
 
 ; ----- Run
 
@@ -240,12 +257,6 @@
     (and (fn? comm)
          (or (nil? args?) (seq? args?)))))
 
-(defn command? [chunk]
-  (fn? chunk))
-
-(defn value? [chunk]
-  (number? chunk))
-
 (defn- verify-chunk [chunk]
   (when-not (valid-chunk? chunk)
     (throw (RuntimeException. (str "Invalid Chunk: " chunk)))))
@@ -253,8 +264,10 @@
 (defn- apply-chunk-to-state [state chunk]
   (verify-chunk chunk)
 
-  (let [[comm args?] chunk]
-    (apply comm state args?)))
+  (let [[comm args] chunk
+        wrapped-command (wrap-command comm standard-args-n)]
+
+    (apply wrapped-command state args)))
 
 (defn apply-chunk [state chunk] ; Chunk name?
   (-> state

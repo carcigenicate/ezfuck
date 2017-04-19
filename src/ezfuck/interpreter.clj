@@ -42,7 +42,11 @@
 
       acc)))
 
-(defn group-data-commands [code-chunks]
+(defn argument? [])
+; TODO: ISNT CHUNKING THE INSERTION OPERATOR CORRECTLY! It's considering it a command, not an argument.
+(defn group-data-commands
+  "Groups raw chunks into a list of [command args] pairs"
+  [code-chunks]
   (let [dropped-starting-number (if (number? (first code-chunks))
                                     (drop 1 code-chunks)
                                     code-chunks)]
@@ -74,7 +78,7 @@
       (case input
         "stop" nil
 
-        "clear" (recur (st/new-state))
+        "reset" (recur (st/new-state))
 
         (let [comm-chunks (process-code input)
               next-state (st/apply-chunks state comm-chunks)]
