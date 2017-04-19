@@ -70,8 +70,8 @@
     (print ":>")
     (flush)
 
-    (let [input (read-line)]
-      (case
+    (when-let [input (read-line)]
+      (case input
         "stop" nil
 
         "clear" (st/new-state)
@@ -81,4 +81,5 @@
 
           (println (str next-state))
 
-          (recur next-state))))))
+          (recur
+            (assoc next-state :instruction-pointer 0)))))))
