@@ -67,7 +67,7 @@
 (defn repl []
   (loop [state standard-state]
 
-    (print ":>")
+    (print ":>\t")
     (flush)
 
     (when-let [input (read-line)]
