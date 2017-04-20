@@ -33,7 +33,7 @@ ezfuck is a BrainFuck derivative. It uses the same commands, but adds many featu
 
  - Cells don't "wrap" from left to right. Going left past the first cell is a no-op.
 
- - Commands (with the exception of `[ ]` and `V`) can take a number as an argument.
+ - Commands (with the exception of `[ ]`, `V`, `,`, and `.`) can take a number as an argument.
      - `>5` is the same as `>>>>>`, while `+++++++++++++++++` can be written as `+17`
 
  - The "insertion"/"extraction" operators (`V`/`^`) can be used to directly set a cells value, and get the cell's value to be used as an argument for another command.
@@ -54,7 +54,7 @@ BrainFuck code is valid ezfuck code, providing:
 
 ## Installation
 
-Download from http://example.com/FIXME.
+Either create a jar using the code, download the one provided, or pull the code into an IDE and run it directly.
 
 ## Usage
 
