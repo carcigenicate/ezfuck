@@ -4,10 +4,6 @@
 
   (:refer-clojure :exclude [chunk]))
 
-; TODO:
-; - Have an operator that evaluates to the current cell value.
-; - Have a Reader class that handles the instruction-pointer?
-
 (def default-effect-magnitude 1)
 
 (def insertion-marker ::insert)
@@ -88,7 +84,8 @@
 (defn effect-instruction-pointer [state f]
   (update state :instruction-pointer
           ; -1 since it will auto-advance to 0 after the command is run
-          ; If the lower bound was 0, it wouldn't be possible to go back to the first command.
+          ;  If the lower bound was 0, it wouldn't be possible to go back to the first command.
+          ; The upper bound is the max value since we have no idea how many commands are in the code.
           #(g/clamp (f %) -1 Long/MAX_VALUE)))
 
 (defn inc-instruction-pointer [state]
