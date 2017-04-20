@@ -19,4 +19,4 @@
                  \, s/buffered-input-to-cell-at-pointer
 
                  \^ s/extract
-                 \V ::s/insert})
+                 \V s/insertion-marker})

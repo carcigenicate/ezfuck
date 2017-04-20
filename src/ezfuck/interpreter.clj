@@ -1,7 +1,6 @@
 (ns ezfuck.interpreter
   (:require [ezfuck.state :as st]
-            [ezfuck.language-symbols :as sy]
-            [helpers.general-helpers :as g]))
+            [ezfuck.language-symbols :as sy]))
 
 (def standard-state (st/new-state))
 
@@ -45,10 +44,6 @@
   (or (number? arg)
       (st/insertion-operator? arg)))
 
-(defn same-type-as? [arg1 arg2]
-  (= (type arg1)
-     (type arg2)))
-
 ; TODO: ISNT CHUNKING THE INSERTION OPERATOR CORRECTLY! It's considering it a command, not an argument.
 (defn group-data-commands
   "Groups raw chunks into a list of [command args] pairs"
@@ -74,7 +69,7 @@
   (let [chunks (process-code code)]
     (st/apply-chunks standard-state chunks)))
 
-(defn print-f [messages]
+(defn- print-f [messages]
   (apply print messages)
   (flush))
 

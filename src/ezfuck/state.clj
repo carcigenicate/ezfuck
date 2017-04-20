@@ -60,13 +60,6 @@
   (vec (drop-last (- (count cells) new-size)
                   cells)))
 
-(defn resize-cells-to [cells new-size]
-  (let [size-diff (- new-size (count cells))]
-    (cond
-      (zero? size-diff) cells
-      (pos? size-diff) (grow-cells-to cells new-size)
-      :else (shrink-cells-to cells new-size))))
-
 (defn grow-cells-if-nec [state new-ptr]
   (update state :cells
           #(if (pointer-inbounds? % new-ptr)
@@ -219,7 +212,7 @@
 ; ----- Insertion / Extraction Operator ^(Evaluates to the value of the current cell)
 
 (defn insertion-operator? [arg]
-  (= arg ::insert))
+  (= arg insertion-marker))
 
 (defn extract [state & [n?]]
   (if n?
