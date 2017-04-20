@@ -2,16 +2,23 @@
   (:require [ezfuck.interpreter :as i]
             [clojure.string :as string])
 
+  (:import [java.io FileNotFoundException])
+
   (:gen-class))
 
-(defn -main [^String mode & [^String path?]]
-  (let [mode-lower (string/lower-case mode)]
+
+(defn -main [& [^String mode? ^String path?]]
+  (let [mode-lower (string/lower-case (or mode? ""))]
 
     (case (first mode-lower)
-      \i (let [code (if path? (slurp path?) nil)]
-           (if path?
-             (i/interpret code)
-             (println "Enter a path to read from.")))
+      \i (if path?
+           (try
+             (i/interpret (slurp path?))
+
+             (catch FileNotFoundException e
+               (println "Invalid path.")))
+
+           (println "Enter a path to read from."))
 
       \r (i/repl)
 
