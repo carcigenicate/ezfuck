@@ -4,7 +4,7 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [helpers "1"]]
 
-  :main ezfuck.core
+  :main ezfuck.main
 
   :target-path "target/%s"
 
