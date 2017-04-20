@@ -36,15 +36,15 @@ ezfuck is a BrainFuck derivative. It uses the same commands but adds many featur
   - `^5` sets the current cell's value to 5, regardless of what it was before
   - `V` evaluates to the current cells value, immediately before the command on its right is run.
   - `^20 >V` sets the current cell to `20`, then takes that value and gives it to `>`. This would be the same as `>>>>>>>>>>>>>>>>>>>>`. You could also do something like `,>V`, which would move to the right based on user input.
-  - The instruction pointer can be manipulated directly using `{` and `}`.
+ - The instruction pointer can be manipulated directly using `{` and `}`. Like `]`, the jump will only happen if the current cell has a value of 0. `+{` will produce an infinite loop.
 
 - - - - -
 
 BrainFuck code is valid ezfuck code, providing:
 
- - The code doesn't contain comments with any of the introduced symbols. Have a number, "^" or "V" in the comments could change the behavior of the code.
+ - The code doesn't contain comments with any of the new symbols. Having a number, `{`, `}`, `^` or `V` in the comments could potentially change the behavior of the code.
 
- - The code doesn't rely on B
+ - The code doesn't rely on BrainFuck's cell value wrapping from 0-255, or the cell pointer wrapping from left to right.
 
 
 ## Installation
@@ -53,25 +53,26 @@ Download from http://example.com/FIXME.
 
 ## Usage
 
-FIXME: explanation
+With the `jar` in the current directory, run:
 
-    $ java -jar ezfuck-0.1.0-standalone.jar [args]
+    $ java -jar ezfuck-1-standalone.jar
+
+ to start a REPL.
+
+ The REPL can also be started directly by running `ezfuck.interpreter/repl`
 
 ## Options
 
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
+So far it's only a REPL. Will add interpreter options shortly.
 
 ### Bugs
 
-...
+None yet!
 
-### Any Other Sections
-### That You Think
-### Might be Useful
+## Examples
+
+ - To multiply in BrainFuck, you can do something like `++++[>+++<-]` to multiply `4` and `3`. In ezfuck, this could be written as `+4[>+3-]`, or just `+3*4`. The last example doesn't require a second cell, since the loop is no longer required.
+ - Operators can be "chained"
 
 ## License
 
