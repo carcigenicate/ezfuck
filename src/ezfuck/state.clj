@@ -221,10 +221,6 @@
 (defn insertion-operator? [arg]
   (= arg ::insert))
 
-(defn insert [state]
-  (throw (UnsupportedOperationException.
-           "Insert hasn't been implememted yet.")))
-
 (defn extract [state & [n?]]
   (if n?
     (effect-current-cell state
