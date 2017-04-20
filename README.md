@@ -5,7 +5,7 @@ ezfuck is a BrainFuck derivative. It uses the same commands but adds many featur
 ## Commands
 
  - Math operators:
-  + `+ - * \`
+     - `+ - * \`
 
  - Move the cell pointer left and right:
   - `< >`
