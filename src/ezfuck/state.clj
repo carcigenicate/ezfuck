@@ -87,6 +87,8 @@
 
 (defn effect-instruction-pointer [state f]
   (update state :instruction-pointer
+          ; -1 since it will auto-advance to 0 after the command is run
+          ; If the lower bound was 0, it wouldn't be possible to go back to the first command.
           #(g/clamp (f %) -1 Long/MAX_VALUE)))
 
 (defn inc-instruction-pointer [state]
