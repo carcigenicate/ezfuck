@@ -154,7 +154,7 @@
 
 (defn output-cell-at-pointer
   "Assumes the current cell value is a valid character code."
-  [state]
+  [state _]
   (let [{cells :cells cp :cell-pointer} state
         raw-output (cells cp)
         output-char (char raw-output)]
@@ -167,7 +167,7 @@
 (defn buffered-input-to-cell-at-pointer
   "Reads in a string, and sets the current cell value to the ASCII code of the first letter.
   Must enter a newline after the input."
-  [state]
+  [state _]
   (effect-current-cell state
                        (constantly
                          (-> (read-line)

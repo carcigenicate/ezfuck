@@ -72,7 +72,8 @@ None yet!
 ## Examples
 
  - To multiply in BrainFuck, you can do something like `++++[>+++<-]` to multiply `4` and `3`. In ezfuck, this could be written as `+4[>+3-]`, or just `+3*4`. The last example doesn't require a second cell, since the loop is no longer required.
- - Operators can be "chained"
+ - Operators can be "chained" to carry out longer equations:
+  - `+5*6/10`, `,+48`
 
 ## License
 
