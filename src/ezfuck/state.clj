@@ -93,19 +93,21 @@
 
 ; ----- Pointer Left/Right < >
 
-(defn clamp-cell-pointer [cells ptr]
-  (g/clamp ptr 0 (count cells)))
+(defn clamp-non-neg [ptr]
+  (if (neg? ptr) 0 ptr))
 
 (defn move-pointer-left [state by]
-  (let [{cells :cells ptr :cell-pointer} state
-        new-ptr (clamp-cell-pointer cells (- ptr by))]
+  (let [{ptr :cell-pointer} state
+        new-ptr (clamp-non-neg (- ptr by))]
+
     (-> state
         (shrink-cells-if-nec new-ptr)
         (assoc :cell-pointer new-ptr))))
 
 (defn move-pointer-right [state by]
-  (let [{cells :cells ptr :cell-pointer} state
-        new-ptr (clamp-cell-pointer cells (+ ptr by))]
+  (let [{ptr :cell-pointer} state
+        new-ptr (clamp-non-neg (+ ptr by))]
+
     (-> state
         (grow-cells-if-nec new-ptr)
         (assoc :cell-pointer new-ptr))))
@@ -239,16 +241,26 @@
 (defn substitute-args [args sub-value]
   (map #(substitute-if-insertion sub-value %) args))
 
-(defn standardize-args [args]
-  (map #(or % default-effect-magnitude) args))
+(defn standardize-args [args n-args]
+  (let [defaulted-args (mapv #(or % default-effect-magnitude) args)
+        n-needed (- n-args (count args))]
+    (cond
+      (pos? n-needed)
+      (into (vec args)
+            (repeat n-needed default-effect-magnitude))
+
+      (neg? n-needed)
+      (subvec defaulted-args 0 n-args)
+
+      :else
+      args)))
 
 (defn wrap-command [command n-args]
   (fn [state & args]
     (let [subd-args (substitute-args args (current-cell-value state))
-          full-args (into (vec subd-args)
-                          (repeat (- n-args (count args))
-                                  default-effect-magnitude))]
-      (apply command state full-args))))
+          standardized-args (standardize-args subd-args n-args)]
+
+      (apply command state standardized-args))))
 
 ; ----- Run
 
