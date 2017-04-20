@@ -19,10 +19,10 @@ ezfuck is a BrainFuck derivative. It uses the same commands, but adds many featu
  - Number literals:
      - `0 1 2 3 4 5 6 7 8 9`
 
- - Set the current cell 's value:
+ - Set the current cell 's value (Extraction):
      - `^`
 
- - Get the current cell's value:
+ - Get the current cell's value (Insertion):
      - `V`
 
 ## Features
