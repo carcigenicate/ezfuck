@@ -22,7 +22,6 @@
     (sy/symbol-map sym)
     (Integer/parseInt (apply str sym))))
 
-
 (defn- chunk-symbols [filtered-code-symbols]
   (loop [[f-sym :as syms] filtered-code-symbols
          acc []]
