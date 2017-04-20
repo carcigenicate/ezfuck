@@ -75,11 +75,16 @@
   (let [chunks (process-code code)]
     (st/apply-chunks standard-state chunks)))
 
+(defn print-f [messages]
+  (apply print messages)
+  (flush))
+
 (defn repl []
+  (println "Type stop to stop the REPL, and reset to reset the internal state.")
+
   (loop [state standard-state]
 
-    (print ":>\t")
-    (flush)
+    (print-f ":> ")
 
     (when-let [input (read-line)]
       (case input

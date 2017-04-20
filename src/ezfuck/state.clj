@@ -35,9 +35,10 @@
        (reverse)
        (vec)))
 
+; TODO: Print a "^" under the current cell?
 (defn pprint-state [state]
   (let [limited-cells (update state :cells rev-drop-zeros)]
-    (str "<" (s/join " " (vals limited-cells)) ">")))
+    (str "<" (s/join " " (vals state)) ">")))
 
 (defn syntax-error [^String cause]
   (RuntimeException.
